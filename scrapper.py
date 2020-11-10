@@ -9,5 +9,6 @@ def interface():
         print("mr lodge")
         print(scrap_mr_lodge())
 
+
 if __name__ == "__main__":
     interface()

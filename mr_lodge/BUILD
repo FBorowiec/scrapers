@@ -7,7 +7,6 @@ py_library(
     name = "mr_lodge_scrapper",
     srcs = glob(["*.py"]),
     deps = [
-        requirement("pep8"),
-        requirement("pylint"),
+        requirement("pandas"),
         ]
 )
