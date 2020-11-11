@@ -7,5 +7,5 @@ The script allows you to:
 ## How to run
 
 ```bash
-bazel run //:mr_lodge
+bazel run //:mr_lodge -- --output_folder=/path/to/output_folder/
 ```
