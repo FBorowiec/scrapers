@@ -10,11 +10,17 @@ def parse_arguments():
         "--output_folder",
         type=Path,
         help="Extract the scrapped data onto a csv file on your filesystem",
-        required=True,
+        required=False,
     )
     website_parser.add_argument(
         "--mr_lodge",
         help="Scrap data from current apartments available on Mr. Lodge",
+        required=False,
+        action="store_true",
+    )
+    website_parser.add_argument(
+        "--currencies_rates",
+        help="Get current currencies rates values",
         required=False,
         action="store_true",
     )
