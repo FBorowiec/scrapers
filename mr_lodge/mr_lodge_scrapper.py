@@ -12,6 +12,7 @@ def scrap_mr_lodge():
                 "User-agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:61.0) Gecko/20100101 Firefox/61.0"
             },
         )
+        r.raise_for_status()
         c = r.content
         soup = BeautifulSoup(c, "html.parser")
 
