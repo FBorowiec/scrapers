@@ -8,5 +8,5 @@ py_library(
     srcs = glob(["*.py"]),
     deps = [
         requirement("pandas"),
-        ]
+    ],
 )

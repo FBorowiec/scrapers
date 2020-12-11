@@ -3,22 +3,22 @@ load("@scraper_deps//:requirements.bzl", "requirement")
 
 py_binary(
     name = "mr_lodge",
-    main = "scrapper.py",
     srcs = ["scrapper.py"],
     args = ["--mr_lodge"],
+    main = "scrapper.py",
     deps = [
         "//mr_lodge:mr_lodge_scrapper",
         requirement("pandas"),
-        ],
+    ],
 )
 
 py_binary(
     name = "currencies_rates",
-    main = "scrapper.py",
     srcs = ["scrapper.py"],
     args = ["--currencies_rates"],
+    main = "scrapper.py",
     deps = [
         "//currencies_rates:currency_rates_scrapper",
         requirement("pandas"),
-        ],
+    ],
 )
