@@ -19,6 +19,12 @@ def parse_arguments():
         action="store_true",
     )
     website_parser.add_argument(
+        "--cisei",
+        help="Get italian emmigration data from ciseionline.it",
+        required=False,
+        action="store_true",
+    )
+    website_parser.add_argument(
         "--cognomix",
         help="Get most common italian surnames",
         required=False,

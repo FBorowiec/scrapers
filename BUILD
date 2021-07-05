@@ -13,6 +13,17 @@ py_binary(
 )
 
 py_binary(
+    name = "cisei",
+    srcs = ["scrapper.py"],
+    args = ["--cisei"],
+    main = "scrapper.py",
+    deps = [
+        "//cisei:cisei_scrapper",
+        requirement("pandas"),
+    ],
+)
+
+py_binary(
     name = "cognomix",
     srcs = ["scrapper.py"],
     args = ["--cognomix"],
