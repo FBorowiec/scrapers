@@ -48,6 +48,18 @@ class CiseiRequestHandler:
         return soup
 
 
+def get_names_list():
+    with open("cognomix/names.csv", mode="r") as f:
+        names = csv.reader(f)
+        names_list = []
+        for name in names:
+            names_list.append(name[0])
+        return names_list
+
+
 def scrap_cisei():
     crh = CiseiRequestHandler()
-    print(crh.get_surname_soup("Corsini"))
+    # names = get_names_list()
+    names = ["Corsini"]
+    for name in names:
+        print(crh.get_surname_soup(name))

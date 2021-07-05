@@ -10,3 +10,8 @@ py_library(
         requirement("tenacity"),
     ],
 )
+
+filegroup(
+    name = "names",
+    srcs = ["names.csv"]
+)
