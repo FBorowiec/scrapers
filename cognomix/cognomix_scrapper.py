@@ -1,33 +1,39 @@
+from time import sleep
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
 
-LETTERE = ["A"]
-# "B",
-# "C",
-# "D",
-# "E",
-# "F",
-# "G",
-# "I",
-# "L",
-# "M",
-# "N",
-# "O",
-# "P",
-# "Q",
-# "R",
-# "S",
-# "T",
-# "U",
-# "V",
-# "Z",
-# ]
+
+LETTERE = [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "I",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "R",
+    "S",
+    "T",
+    "U",
+    "V",
+    "Z",
+]
 
 
-def get_soup(letter):
+def get_soup(letter, page_number):
     r = requests.get(
-        "https://www.cognomix.it/origine-cognomi-italiani/" + letter,
+        "https://www.cognomix.it/origine-cognomi-italiani/"
+        + letter
+        + "/"
+        + str(page_number),
         headers={
             "User-agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:61.0) Gecko/20100101 Firefox/61.0"
         },
@@ -39,57 +45,31 @@ def get_soup(letter):
     return soup
 
 
-# def get_page_numbers(soup):
+def get_page_numbers(soup):
+    page_content = soup.find_all("div", {"class": "text-center"})
+    for content in page_content:
+        if "Pagina" in content.text:
+            return int(content.find_all("a", href=True)[-1].contents[0])
 
 
 def scrap_cognomix():
     names_list = []
     for letter in LETTERE:
-        soup = get_soup(letter)
+        soup = get_soup(letter=letter, page_number=1)
+        pages = get_page_numbers(soup)
+        for i in range(pages):
+            soup = get_soup(letter=letter, page_number=i + 1)
 
-        names_content_list = soup.find_all("div", {"class": "contenuto"})
-        names = None
-        for content in names_content_list:
-            names_content = content.find("ul")
-            if names_content is not None:
-                names = names_content
+            names_content_list = soup.find_all("div", {"class": "contenuto"})
+            names = None
+            for content in names_content_list:
+                names_content = content.find("ul")
+                if names_content is not None:
+                    names = names_content
 
-        for li in names.find_all("li"):
-            names_list.append(li.text.split("-")[0][:-1])
+            for li in names.find_all("li"):
+                names_list.append(li.text.split("-")[0][:-1])
 
-        print(names_list)
+            sleep(0.5)
 
-        # list_of_names = []
-        # for name in names:
-        #     name.find("span", {"class": "obj-rent"})
-        #     apart_dict = {}
-        #     try:
-        #         apart_dict["Rent"] = (
-        #             .text.replace(".-", "")
-        #             .replace(",", "")
-        #         )
-        #     except:
-        #         apart_dict["Rent"] = None
-        #     try:
-        #         apart_dict["Location"] = apartment.find(
-        #             "div", {"class": "obj-smallinfo"}
-        #         ).text
-        #     except:
-        #         apart_dict["Location"] = None
-        #     try:
-        #         apart_dict["Rooms"] = float(
-        #             apartment.find("span", {"class": "obj-room"})
-        #             .text.replace(" ", "")
-        #             .replace("rooms", "")
-        #             .replace("room", "")
-        #         )
-        #     except:
-        #         apart_dict["Rooms"] = None
-        #     try:
-        #         apart_dict["Area"] = apartment.find("span", {"class": "obj-area"}).text
-        #     except:
-        #         apart_dict["Area"] = None
-
-        #     list_of_aparments.append(apart_dict)
-
-        # return pd.DataFrame(list_of_aparments)
+    print(len(names_list))
