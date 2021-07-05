@@ -19,6 +19,7 @@ py_binary(
     main = "scrapper.py",
     deps = [
         "//cognomix:cognomix_scrapper",
+        requirement("pandas"),
     ],
 )
 

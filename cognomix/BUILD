@@ -7,6 +7,6 @@ py_library(
     name = "cognomix_scrapper",
     srcs = glob(["*.py"]),
     deps = [
-        requirement("pandas"),
+        requirement("tenacity"),
     ],
 )
