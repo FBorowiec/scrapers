@@ -62,4 +62,9 @@ def scrap_cisei():
     # names = get_names_list()
     names = ["Corsini"]
     for name in names:
-        print(crh.get_surname_soup(name))
+        soup = crh.get_surname_soup(name)
+        tr_list = soup.find("div", {"class": "box"}).find("center").find_all("tr")
+        for tr in tr_list:
+            td_list = tr.find_all("td", {"class": "tdesito"})
+            if len(td_list) != 0:
+                print(td_list)
