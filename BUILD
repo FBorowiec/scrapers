@@ -13,6 +13,16 @@ py_binary(
 )
 
 py_binary(
+    name = "cognomix",
+    srcs = ["scrapper.py"],
+    args = ["--cognomix"],
+    main = "scrapper.py",
+    deps = [
+        "//cognomix:cognomix_scrapper",
+    ],
+)
+
+py_binary(
     name = "currencies_rates",
     srcs = ["scrapper.py"],
     args = ["--currencies_rates"],

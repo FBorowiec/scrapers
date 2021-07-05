@@ -19,6 +19,12 @@ def parse_arguments():
         action="store_true",
     )
     website_parser.add_argument(
+        "--cognomix",
+        help="Get most common italian surnames",
+        required=False,
+        action="store_true",
+    )
+    website_parser.add_argument(
         "--currencies_rates",
         help="Get current currencies rates values",
         required=False,
