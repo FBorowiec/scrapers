@@ -11,5 +11,6 @@ py_library(
     ],
     deps = [
         requirement("tenacity"),
+        requirement("pydantic"),
     ],
 )

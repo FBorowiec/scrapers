@@ -8,6 +8,17 @@ import requests
 from bs4 import BeautifulSoup
 from tenacity import retry, wait_fixed
 from os import path
+from pydantic import BaseModel
+
+
+class PersonalInfo(BaseModel):
+    idx: int
+    surname: str
+    full_name: str
+    age: str
+    trip_date: str
+    registration_place: str
+    details: str
 
 
 class CiseiRequestHandler:
@@ -57,6 +68,14 @@ def get_names_list():
         return names_list
 
 
+def get_alpha(string):
+    res = ""
+    for i in string:
+        if i.isalpha():
+            res = "".join([res, i])
+    return res
+
+
 def scrap_cisei():
     crh = CiseiRequestHandler()
     # names = get_names_list()
@@ -67,4 +86,14 @@ def scrap_cisei():
         for tr in tr_list:
             td_list = tr.find_all("td", {"class": "tdesito"})
             if len(td_list) != 0:
-                print(td_list)
+                # TODO: Use regex
+                person_info = PersonalInfo(
+                    idx=td_list[0].text,
+                    surname=name,
+                    full_name=get_alpha(td_list[1].text).replace(name.upper(), ""),
+                    age=td_list[2].text,
+                    trip_date=td_list[3].text,
+                    registration_place=td_list[4].text,
+                    details=td_list[5].contents[0],
+                )
+                print(person_info)
