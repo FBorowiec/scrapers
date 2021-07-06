@@ -1,3 +1,5 @@
+from datetime import date, datetime
+import re
 from urllib.parse import urljoin
 from urllib3.util import Retry
 from requests.adapters import HTTPAdapter
@@ -16,7 +18,7 @@ class PersonalInfo(BaseModel):
     surname: str
     full_name: str
     age: str
-    trip_date: str
+    trip_date: date = None
     registration_place: str
     details: str
 
@@ -68,32 +70,55 @@ def get_names_list():
         return names_list
 
 
-def get_alpha(string):
-    res = ""
-    for i in string:
-        if i.isalpha():
-            res = "".join([res, i])
-    return res
+def get_person_info(td_list, name):
+    idx = td_list[0].text
+
+    age = re.search(r"\d+", td_list[2].text)
+    age = age.group(0) if age is not None else ""
+
+    full_name = re.findall(r"[A-Z]+", td_list[1].text)
+    full_name = (
+        " ".join(full_name).replace(name.upper() + " ", "").title()
+        if full_name is not None
+        else ""
+    )
+
+    trip_date = re.findall(r"\d{1,4}", td_list[3].text)
+    trip_date = (
+        datetime.strptime("-".join(trip_date), "%d-%m-%Y")
+        if trip_date is not None
+        else None
+    )
+
+    registration_place = re.findall(r"\b[A-Z\w+]+", td_list[4].text)
+    registration_place = (
+        " ".join(registration_place) if registration_place is not None else ""
+    )
+
+    details = str(td_list[5].contents[1]).split('"')[1]
+
+    person_info = PersonalInfo(
+        idx=idx,
+        surname=name,
+        full_name=full_name,
+        age=age,
+        trip_date=trip_date,
+        registration_place=registration_place,
+        details=details,
+    )
+
+    return person_info
 
 
 def scrap_cisei():
     crh = CiseiRequestHandler()
     # names = get_names_list()
-    names = ["Corsini"]
+    names = ["Corsini"]  # TODO: Change to get_names_list
     for name in names:
         soup = crh.get_surname_soup(name)
         tr_list = soup.find("div", {"class": "box"}).find("center").find_all("tr")
         for tr in tr_list:
             td_list = tr.find_all("td", {"class": "tdesito"})
             if len(td_list) != 0:
-                # TODO: Use regex
-                person_info = PersonalInfo(
-                    idx=td_list[0].text,
-                    surname=name,
-                    full_name=get_alpha(td_list[1].text).replace(name.upper(), ""),
-                    age=td_list[2].text,
-                    trip_date=td_list[3].text,
-                    registration_place=td_list[4].text,
-                    details=td_list[5].contents[0],
-                )
+                person_info = get_person_info(td_list, name)
                 print(person_info)
