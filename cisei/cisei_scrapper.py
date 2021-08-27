@@ -5,6 +5,7 @@ from urllib3.util import Retry
 from requests.adapters import HTTPAdapter
 from requests.sessions import Session
 import csv
+from typing import Optional, Tuple
 from time import sleep
 from bs4 import BeautifulSoup
 from tenacity import retry, wait_fixed
@@ -15,8 +16,8 @@ class PersonalInfo(BaseModel):
     idx: int
     surname: str
     full_name: str
-    age: int = None
-    trip_date: date = None
+    age: Optional[int] = None
+    trip_date: Optional[date]
     registration_place: str
     url: HttpUrl
 
@@ -26,20 +27,22 @@ class CiseiRequestHandler:
     _DEFAULT_RESPONSE_TIMEOUT = 3
     _URL = "http://www.ciseionline.it/portomondo/ricerca.asp"
     _BASE_PERSON_URL = "http://www.ciseionline.it/portomondo/"
+    _NEXT_PAGE_URL = "http://www.ciseionline.it/portomondo/tabelle.asp?primo=16"
 
     def __init__(self):
         self.timeout = (
             self._DEFAULT_CONNECTION_TIMEOUT,
             self._DEFAULT_RESPONSE_TIMEOUT,
         )
-        self.retries = Retry(connect=5, read=2, redirect=5)
 
         self.session = self._init_session()
 
     def _init_session(self):
         session = Session()
-        session.mount("http://", HTTPAdapter(max_retries=self.retries))
-        session.mount("https://", HTTPAdapter(max_retries=self.retries))
+        retries = Retry(connect=10, read=10, redirect=10)
+
+        session.mount("http://", HTTPAdapter(max_retries=retries))
+        session.mount("https://", HTTPAdapter(max_retries=retries))
         session.headers.update(
             {
                 "User-agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:61.0) Gecko/20100101 Firefox/61.0"
@@ -60,12 +63,19 @@ class CiseiRequestHandler:
         soup = BeautifulSoup(c, "html.parser")
         return soup
 
+    @retry(wait=wait_fixed(1))
+    def get_details_soup(self, details_url):
+        r = self.session.get(details_url)
+        c = r.content
+        soup = BeautifulSoup(c, "html.parser")
+        return soup
+
     # TODO: fix this
     def get_next_page(self, soup):
         custom_header = {"ASPSESSIONIDSQQAABTC": "FEPJIJIBMFNLAOBGIJFKMACA"}
         # match = soup.find_all("a", href=re.compile(r".*tabelle.*"))
         # return match
-        r = self.session.post(self._URL, custom_header)
+        r = self.session.get(self._NEXT_PAGE_URL, custom_header)
         r.raise_for_status()
         c = r.content
         soup = BeautifulSoup(c, "html.parser")
@@ -119,18 +129,43 @@ class CiseiRequestHandler:
 
         return person_info
 
+    def get_person_details(self, person: PersonalInfo):
+        soup = self.get_details_soup(person.url)
+        tr_list = soup.find_all("td")
+        details_dict = {}
+        for tr in tr_list:
+            raw_txt = re.sub(r"\\<[/]?[a-z]\\>", "", tr.text).splitlines()
+
+            for line in raw_txt:
+                try:
+                    k, v = line.split(":")
+                    key = k.strip()
+                    value = v.strip()
+                    if len(value) != 0 and value != "nd":
+                        details_dict[key] = value
+                except ValueError:
+                    pass
+
+        return details_dict
+
 
 def scrap_cisei():
     crh = CiseiRequestHandler()
     # names = get_names_list()
-    names = ["Corsini", "Ghirardini"]  # TODO: Change to get_names_list
+    names = ["Corsini"]  # TODO: Change to get_names_list
     for name in names:
         soup = crh.get_surname_soup(name)
         # print(crh.get_next_page(soup))
         tr_list = soup.find("div", {"class": "box"}).find("center").find_all("tr")
-        for tr in tr_list:
+        for i, tr in enumerate(tr_list):
+            if i > 2:
+                return
+
             td_list = tr.find_all("td", {"class": "tdesito"})
             if len(td_list) != 0:
                 person_info = crh.get_person_info(td_list, name)
                 print(person_info)
+                person_details = crh.get_person_details(person_info)
+                i += 1
+                print(person_details)
         sleep(1)  # do not overload the server
