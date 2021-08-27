@@ -1,11 +1,12 @@
 from datetime import date, datetime
+import json
 import re
 from urllib.parse import urljoin
 from urllib3.util import Retry
 from requests.adapters import HTTPAdapter
 from requests.sessions import Session
 import csv
-from typing import Optional, Tuple
+from typing import Optional, Dict
 from time import sleep
 from bs4 import BeautifulSoup
 from tenacity import retry, wait_fixed
@@ -20,6 +21,7 @@ class PersonalInfo(BaseModel):
     trip_date: Optional[date]
     registration_place: str
     url: HttpUrl
+    details: Optional[Dict]
 
 
 class CiseiRequestHandler:
@@ -141,7 +143,7 @@ class CiseiRequestHandler:
                     k, v = line.split(":")
                     key = k.strip()
                     value = v.strip()
-                    if len(value) != 0 and value != "nd":
+                    if len(value) != 0 and value not in ["nd", "ND", "n.d.", "N.D."]:
                         details_dict[key] = value
                 except ValueError:
                     pass
@@ -157,15 +159,13 @@ def scrap_cisei():
         soup = crh.get_surname_soup(name)
         # print(crh.get_next_page(soup))
         tr_list = soup.find("div", {"class": "box"}).find("center").find_all("tr")
-        for i, tr in enumerate(tr_list):
-            if i > 2:
-                return
-
+        for tr in tr_list:
             td_list = tr.find_all("td", {"class": "tdesito"})
             if len(td_list) != 0:
                 person_info = crh.get_person_info(td_list, name)
-                print(person_info)
                 person_details = crh.get_person_details(person_info)
-                i += 1
-                print(person_details)
+                person_info.details = person_details
+
+                print(person_info)
+                print()
         sleep(1)  # do not overload the server
