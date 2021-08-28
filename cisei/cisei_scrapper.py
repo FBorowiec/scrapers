@@ -1,5 +1,4 @@
 from datetime import date, datetime
-import json
 import re
 from urllib.parse import urljoin
 from urllib3.util import Retry
@@ -72,11 +71,11 @@ class CiseiRequestHandler:
         soup = BeautifulSoup(c, "html.parser")
         return soup
 
-    # TODO: fix this
     def get_next_page(self, soup):
-        custom_header = {"ASPSESSIONIDSQQAABTC": "FEPJIJIBMFNLAOBGIJFKMACA"}
-        # match = soup.find_all("a", href=re.compile(r".*tabelle.*"))
-        # return match
+        # TODO: add cookie and referer (previous page link with tabelle.asp?primo=16 num, connection etc.
+        # TODO: Parse site for at least two tabelle?primo=XX and choose the bigger one
+        # TODO: match = soup.find_all("a", href=re.compile(r".*tabelle.*"))
+        custom_header = {}
         r = self.session.get(self._NEXT_PAGE_URL, custom_header)
         r.raise_for_status()
         c = r.content
@@ -143,7 +142,7 @@ class CiseiRequestHandler:
                     k, v = line.split(":")
                     key = k.strip()
                     value = v.strip()
-                    if len(value) != 0 and value not in ["nd", "ND", "n.d.", "N.D."]:
+                    if value not in ["", "nd", "ND", "n.d.", "N.D."]:
                         details_dict[key] = value
                 except ValueError:
                     pass
@@ -155,9 +154,10 @@ def scrap_cisei():
     crh = CiseiRequestHandler()
     # names = get_names_list()
     names = ["Corsini"]  # TODO: Change to get_names_list
+
     for name in names:
         soup = crh.get_surname_soup(name)
-        # print(crh.get_next_page(soup))
+        print(crh.get_next_page(soup))
         tr_list = soup.find("div", {"class": "box"}).find("center").find_all("tr")
         for tr in tr_list:
             td_list = tr.find_all("td", {"class": "tdesito"})
@@ -167,5 +167,6 @@ def scrap_cisei():
                 person_info.details = person_details
 
                 print(person_info)
+                # TODO: store info in db
                 print()
         sleep(1)  # do not overload the server

@@ -8,6 +8,7 @@ from mr_lodge.mr_lodge_scrapper import scrap_mr_lodge
 
 def interface():
     args = parse_arguments()
+    data = None
 
     if args.mr_lodge:
         data = scrap_mr_lodge()
@@ -21,7 +22,7 @@ def interface():
     if args.cognomix:
         data = scrap_cognomix()
 
-    if args.output_folder:
+    if args.output_folder and data is not None:
         data.to_csv(path.join(args.output_folder, "output_data.csv"))
 
 
