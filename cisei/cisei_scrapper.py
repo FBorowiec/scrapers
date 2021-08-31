@@ -5,7 +5,7 @@ from urllib3.util import Retry
 from requests.adapters import HTTPAdapter
 from requests.sessions import Session
 import csv
-from typing import Optional, Dict
+from typing import Optional, Dict, List
 from time import sleep
 from bs4 import BeautifulSoup
 from tenacity import retry, wait_fixed
@@ -30,7 +30,7 @@ class CiseiRequestHandler:
     _BASE_PERSON_URL = "http://www.ciseionline.it/portomondo/"
     _NEXT_PAGE_URL = "http://www.ciseionline.it/portomondo/tabelle.asp?primo=16"
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.timeout = (
             self._DEFAULT_CONNECTION_TIMEOUT,
             self._DEFAULT_RESPONSE_TIMEOUT,
@@ -38,7 +38,7 @@ class CiseiRequestHandler:
 
         self.session = self._init_session()
 
-    def _init_session(self):
+    def _init_session(self) -> Session:
         session = Session()
         retries = Retry(connect=10, read=10, redirect=10)
 
@@ -52,7 +52,7 @@ class CiseiRequestHandler:
         return session
 
     @retry(wait=wait_fixed(1))
-    def get_surname_soup(self, surname: str):
+    def get_surname_soup(self, surname: str) -> BeautifulSoup:
         custom_header = {
             "input_cognome": surname,
             "input_nome": "",
@@ -65,13 +65,13 @@ class CiseiRequestHandler:
         return soup
 
     @retry(wait=wait_fixed(1))
-    def get_details_soup(self, details_url):
+    def get_details_soup(self, details_url: str) -> BeautifulSoup:
         r = self.session.get(details_url)
         c = r.content
         soup = BeautifulSoup(c, "html.parser")
         return soup
 
-    def get_next_page(self, soup):
+    def get_next_page(self, soup: BeautifulSoup, page: int = 0):
         # TODO: add cookie and referer (previous page link with tabelle.asp?primo=16 num, connection etc.
         # TODO: Parse site for at least two tabelle?primo=XX and choose the bigger one
         # TODO: match = soup.find_all("a", href=re.compile(r".*tabelle.*"))
@@ -83,7 +83,7 @@ class CiseiRequestHandler:
         return soup
 
     @staticmethod
-    def get_names_list():
+    def get_names_list() -> List[str]:
         with open("cognomix/names.csv", mode="r") as f:
             names = csv.reader(f)
             names_list = []
@@ -149,6 +149,19 @@ class CiseiRequestHandler:
 
         return details_dict
 
+    def parse_first_page(self, name: str, soup: BeautifulSoup):
+        tr_list = soup.find("div", {"class": "box"}).find("center").find_all("tr")
+        for tr in tr_list:
+            td_list = tr.find_all("td", {"class": "tdesito"})
+            if len(td_list) != 0:
+                person_info = self.get_person_info(td_list, name)
+                person_details = self.get_person_details(person_info)
+                person_info.details = person_details
+
+                print(person_info)
+                # TODO: store info in db
+                print()
+
 
 def scrap_cisei():
     crh = CiseiRequestHandler()
@@ -157,16 +170,12 @@ def scrap_cisei():
 
     for name in names:
         soup = crh.get_surname_soup(name)
-        print(crh.get_next_page(soup))
-        tr_list = soup.find("div", {"class": "box"}).find("center").find_all("tr")
-        for tr in tr_list:
-            td_list = tr.find_all("td", {"class": "tdesito"})
-            if len(td_list) != 0:
-                person_info = crh.get_person_info(td_list, name)
-                person_details = crh.get_person_details(person_info)
-                person_info.details = person_details
+        crh.parse_first_page(name, soup)
 
-                print(person_info)
-                # TODO: store info in db
-                print()
+        i = 0
+        next_page = crh.get_next_page(soup, page=i)
+        while next_page is not None:
+            i += 16
+            next_page = crh.get_next_page(soup, page=i)
+
         sleep(1)  # do not overload the server
