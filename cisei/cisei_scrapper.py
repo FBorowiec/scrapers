@@ -45,7 +45,7 @@ class CiseiRequestHandler:
         )
         return session
 
-    # @retry(wait=wait_fixed(1))
+    @retry(wait=wait_fixed(1))
     def get_first_page(self, surname: str) -> BeautifulSoup:
         custom_header = {
             "input_cognome": surname,
@@ -58,7 +58,7 @@ class CiseiRequestHandler:
         soup = BeautifulSoup(c, "html.parser")
         return soup
 
-    # @retry(wait=wait_fixed(1))
+    @retry(wait=wait_fixed(1))
     def get_next_page(self, page: int):
         cookie = self.session.cookies.get_dict()
         cookie_list = list(cookie.items())[0]
@@ -74,14 +74,12 @@ class CiseiRequestHandler:
         soup = BeautifulSoup(c, "html.parser")
         return soup
 
-    @staticmethod
-    def get_names_list() -> List[str]:
-        with open("cognomix/names.csv", mode="r") as f:
-            names = csv.reader(f)
-            names_list = []
-            for name in names:
-                names_list.append(name[0])
-            return names_list
+    @retry(wait=wait_fixed(1))
+    def get_details_soup(self, details_url: str) -> BeautifulSoup:
+        r = self.session.get(details_url)
+        c = r.content
+        soup = BeautifulSoup(c, "html.parser")
+        return soup
 
     def get_person_info(self, td_list, name):
         idx = td_list[0].text
@@ -121,13 +119,6 @@ class CiseiRequestHandler:
         )
 
         return person_info
-
-    # @retry(wait=wait_fixed(1))
-    def get_details_soup(self, details_url: str) -> BeautifulSoup:
-        r = self.session.get(details_url)
-        c = r.content
-        soup = BeautifulSoup(c, "html.parser")
-        return soup
 
     def get_person_details(self, person: PersonalInfo):
         soup = self.get_details_soup(person.url)
@@ -171,10 +162,18 @@ class CiseiRequestHandler:
         """TODO: Implement logging strategy"""
 
 
+def get_names_list() -> List[str]:
+    with open("cognomix/names.csv", mode="r") as f:
+        names = csv.reader(f)
+        names_list = []
+        for name in names:
+            names_list.append(name[0])
+        return names_list
+
+
 def scrap_cisei():
     crh = CiseiRequestHandler()
-    # names = get_names_list()
-    names = ["Corsini"]  # TODO: Change to get_names_list
+    names = get_names_list()
 
     for name in names:
         soup = crh.get_first_page(name)
@@ -188,4 +187,4 @@ def scrap_cisei():
             next_page = crh.next_page_exists(soup)
             i += crh.MAX_RESULTS_PER_PAGE
 
-        sleep(1)  # do not overload the server
+        sleep(0.5)  # do not overload the server
