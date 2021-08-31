@@ -24,18 +24,12 @@ class PersonalInfo(BaseModel):
 
 
 class CiseiRequestHandler:
-    _DEFAULT_CONNECTION_TIMEOUT = 3
-    _DEFAULT_RESPONSE_TIMEOUT = 3
-    _URL = "http://www.ciseionline.it/portomondo/ricerca.asp"
-    _BASE_PERSON_URL = "http://www.ciseionline.it/portomondo/"
-    _NEXT_PAGE_URL = "http://www.ciseionline.it/portomondo/tabelle.asp?primo=16"
+    URL = "http://www.ciseionline.it/portomondo/ricerca.asp"
+    BASE_PERSON_URL = "http://www.ciseionline.it/portomondo/"
+    NEXT_PAGE_URL = "http://www.ciseionline.it/portomondo/tabelle.asp?primo="
+    MAX_RESULTS_PER_PAGE = 16
 
     def __init__(self) -> None:
-        self.timeout = (
-            self._DEFAULT_CONNECTION_TIMEOUT,
-            self._DEFAULT_RESPONSE_TIMEOUT,
-        )
-
         self.session = self._init_session()
 
     def _init_session(self) -> Session:
@@ -51,32 +45,30 @@ class CiseiRequestHandler:
         )
         return session
 
-    @retry(wait=wait_fixed(1))
-    def get_surname_soup(self, surname: str) -> BeautifulSoup:
+    # @retry(wait=wait_fixed(1))
+    def get_first_page(self, surname: str) -> BeautifulSoup:
         custom_header = {
             "input_cognome": surname,
             "input_nome": "",
             "input_dest": "al",
         }
-        r = self.session.post(self._URL, custom_header)
+        r = self.session.post(self.URL, custom_header)
         r.raise_for_status()
         c = r.content
         soup = BeautifulSoup(c, "html.parser")
         return soup
 
-    @retry(wait=wait_fixed(1))
-    def get_details_soup(self, details_url: str) -> BeautifulSoup:
-        r = self.session.get(details_url)
-        c = r.content
-        soup = BeautifulSoup(c, "html.parser")
-        return soup
-
-    def get_next_page(self, soup: BeautifulSoup, page: int = 0):
-        # TODO: add cookie and referer (previous page link with tabelle.asp?primo=16 num, connection etc.
-        # TODO: Parse site for at least two tabelle?primo=XX and choose the bigger one
-        # TODO: match = soup.find_all("a", href=re.compile(r".*tabelle.*"))
-        custom_header = {}
-        r = self.session.get(self._NEXT_PAGE_URL, custom_header)
+    # @retry(wait=wait_fixed(1))
+    def get_next_page(self, page: int):
+        cookie = self.session.cookies.get_dict()
+        cookie_list = list(cookie.items())[0]
+        cookie_str = f"{cookie_list[0]}={cookie_list[1]}"
+        custom_header = {
+            "Cookie": cookie_str,
+            "Connection": "keep-alive",
+        }
+        url = self.NEXT_PAGE_URL + str(page)
+        r = self.session.get(url, headers=custom_header)
         r.raise_for_status()
         c = r.content
         soup = BeautifulSoup(c, "html.parser")
@@ -125,10 +117,17 @@ class CiseiRequestHandler:
             age=age,
             trip_date=trip_date,
             registration_place=registration_place,
-            url=urljoin(self._BASE_PERSON_URL, details),
+            url=urljoin(self.BASE_PERSON_URL, details),
         )
 
         return person_info
+
+    # @retry(wait=wait_fixed(1))
+    def get_details_soup(self, details_url: str) -> BeautifulSoup:
+        r = self.session.get(details_url)
+        c = r.content
+        soup = BeautifulSoup(c, "html.parser")
+        return soup
 
     def get_person_details(self, person: PersonalInfo):
         soup = self.get_details_soup(person.url)
@@ -149,7 +148,7 @@ class CiseiRequestHandler:
 
         return details_dict
 
-    def parse_first_page(self, name: str, soup: BeautifulSoup):
+    def parse_page(self, name: str, soup: BeautifulSoup):
         tr_list = soup.find("div", {"class": "box"}).find("center").find_all("tr")
         for tr in tr_list:
             td_list = tr.find_all("td", {"class": "tdesito"})
@@ -157,10 +156,19 @@ class CiseiRequestHandler:
                 person_info = self.get_person_info(td_list, name)
                 person_details = self.get_person_details(person_info)
                 person_info.details = person_details
+                sleep(0.5)  # do not overload the server
 
-                print(person_info)
-                # TODO: store info in db
-                print()
+                print(person_info, "\n")
+                self.log_person_info(person_info)
+
+    def next_page_exists(self, soup: BeautifulSoup) -> bool:
+        matches = [
+            str(x) for x in list(soup.find_all("a", href=re.compile(r".*tabelle.*")))
+        ]
+        return "Successivi" in f"{matches}"
+
+    def log_person_info(self, person_info: PersonalInfo) -> None:
+        """TODO: Implement logging strategy"""
 
 
 def scrap_cisei():
@@ -169,13 +177,15 @@ def scrap_cisei():
     names = ["Corsini"]  # TODO: Change to get_names_list
 
     for name in names:
-        soup = crh.get_surname_soup(name)
-        crh.parse_first_page(name, soup)
+        soup = crh.get_first_page(name)
+        crh.parse_page(name, soup)
 
-        i = 0
-        next_page = crh.get_next_page(soup, page=i)
-        while next_page is not None:
-            i += 16
-            next_page = crh.get_next_page(soup, page=i)
+        next_page = crh.next_page_exists(soup)
+        i = crh.MAX_RESULTS_PER_PAGE
+        while next_page:
+            soup = crh.get_next_page(page=i)
+            crh.parse_page(name, soup)
+            next_page = crh.next_page_exists(soup)
+            i += crh.MAX_RESULTS_PER_PAGE
 
         sleep(1)  # do not overload the server
