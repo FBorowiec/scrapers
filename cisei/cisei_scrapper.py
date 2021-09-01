@@ -4,12 +4,12 @@ from urllib.parse import urljoin
 from urllib3.util import Retry
 from requests.adapters import HTTPAdapter
 from requests.sessions import Session
-import csv
-from typing import Optional, Dict, List
+from typing import Optional, Dict
 from time import sleep
 from bs4 import BeautifulSoup
 from tenacity import retry, wait_fixed
 from pydantic import BaseModel, HttpUrl
+from cisei.names import get_names_list
 
 
 class PersonalInfo(BaseModel):
@@ -160,15 +160,6 @@ class CiseiRequestHandler:
 
     def log_person_info(self, person_info: PersonalInfo) -> None:
         """TODO: Implement logging strategy"""
-
-
-def get_names_list() -> List[str]:
-    with open("cognomix/names.csv", mode="r") as f:
-        names = csv.reader(f)
-        names_list = []
-        for name in names:
-            names_list.append(name[0])
-        return names_list
 
 
 def scrap_cisei():

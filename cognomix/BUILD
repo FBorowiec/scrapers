@@ -13,5 +13,8 @@ py_library(
 
 filegroup(
     name = "names",
-    srcs = ["names.csv"]
+    srcs = [
+        "jewish_italian_names.csv",
+        "names.csv",
+    ],
 )
