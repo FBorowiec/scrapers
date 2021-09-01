@@ -17,7 +17,7 @@ def interface():
         data = scrap_currencies_rates()
 
     if args.cisei:
-        data = scrap_cisei()
+        scrap_cisei()
 
     if args.cognomix:
         data = scrap_cognomix()

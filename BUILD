@@ -13,7 +13,7 @@ py_binary(
 )
 
 py_binary(
-    name = "cisei",
+    name = "cisei_site",
     srcs = ["scrapper.py"],
     args = ["--cisei"],
     main = "scrapper.py",
@@ -24,7 +24,7 @@ py_binary(
 )
 
 py_binary(
-    name = "cognomix",
+    name = "cognomix_site",
     srcs = ["scrapper.py"],
     args = ["--cognomix"],
     main = "scrapper.py",
