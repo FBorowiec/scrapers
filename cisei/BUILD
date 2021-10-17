@@ -8,6 +8,7 @@ package(default_visibility = ["//visibility:public"])
 py_library(
     name = "cisei_scrapper",
     srcs = [
+        "cisei_logger.py",
         "cisei_scrapper.py",
         "names.py",
     ],
@@ -21,7 +22,6 @@ py_library(
         requirement("pydantic"),
         requirement("requests"),
         requirement("urllib3"),
-        "//logger:cisei_logger",
     ],
 )
 
