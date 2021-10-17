@@ -9,8 +9,12 @@ class LoggerDB:
     USER = "postgres"
     PASSWORD = "postgres"
 
-    def __init__(self, host=HOST, db_name=DB_NAME, port=PORT, user=USER, password=PASSWORD) -> None:
-        self.conn = psycopg2.connect(host=host, database=db_name, port=port, user=user, password=password)
+    def __init__(
+        self, host=HOST, db_name=DB_NAME, port=PORT, user=USER, password=PASSWORD
+    ) -> None:
+        self.conn = psycopg2.connect(
+            host=host, database=db_name, port=port, user=user, password=password
+        )
         self.c = self.conn.cursor()
 
         self.create_person_info_table()
@@ -23,11 +27,11 @@ class LoggerDB:
             idx TEXT NOT NULL,
             surname TEXT NOT NULL,
             full_name TEXT NOT NULL,
-            age INT NOT NULL,
+            age INT,
             trip_date DATE,
             registration_place TEXT,
-            url TEXT
-            );
+            url TEXT,
+            details JSONB);
             """
         )
 
@@ -43,7 +47,8 @@ class LoggerDB:
                 age,
                 trip_date,
                 registration_place,
-                url
+                url,
+                details
             )
             VALUES (DEFAULT, %s, %s, %s, %s, %s, %s, %s);
             """,
@@ -55,6 +60,7 @@ class LoggerDB:
                     person_info.trip_date,
                     person_info.registration_place,
                     person_info.url,
+                    person_info.person_details,
                 ),
             )
 
@@ -70,7 +76,8 @@ class LoggerDB:
                     age,
                     trip_date,
                     registration_place,
-                    url
+                    url,
+                    details
                 FROM person_info
                 ORDER BY registration_place;
                 """
