@@ -34,6 +34,7 @@ class LoggerDB:
             details JSONB);
             """
         )
+        self.conn.commit()
 
     def add_person_info(self, person_info: PersonalInfo) -> None:
         with self.conn:
@@ -64,7 +65,7 @@ class LoggerDB:
                 ),
             )
 
-    def display_last_hours_taker_opportunity(self, hours: int):
+    def display_person_info(self, hours: int):
         with self.conn:
             self.c.execute(
                 """

@@ -15,9 +15,12 @@ py_library(
         "//cognomix:names",
     ],
     deps = [
+        requirement("beautifulsoup4"),
         requirement("tenacity"),
         requirement("psycopg2-binary"),
         requirement("pydantic"),
+        requirement("requests"),
+        requirement("urllib3"),
     ],
 )
 
