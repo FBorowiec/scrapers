@@ -39,7 +39,7 @@ container_push(
     format = "Docker",
     image = "cisei_image",
     registry = "index.docker.io",
-    repository = "framawlad/cisei",
+    repository = "framaxwlad/cisei",
     tag = "$(image_tag)",
     tags = ["manual"],
 )
