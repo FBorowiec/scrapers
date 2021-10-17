@@ -10,6 +10,7 @@ from bs4 import BeautifulSoup
 from tenacity import retry, wait_fixed
 from pydantic import BaseModel, HttpUrl
 from cisei.names import get_names_list
+from logger.cisei_logger import LoggerDB
 
 
 class PersonalInfo(BaseModel):
@@ -30,6 +31,7 @@ class CiseiRequestHandler:
     MAX_RESULTS_PER_PAGE = 16
 
     def __init__(self) -> None:
+        self.logger = LoggerDB()
         self.session = self._init_session()
 
     def _init_session(self) -> Session:
@@ -149,7 +151,6 @@ class CiseiRequestHandler:
                 person_info.details = person_details
                 sleep(0.5)  # do not overload the server
 
-                print(person_info, "\n")
                 self.log_person_info(person_info)
 
     def next_page_exists(self, soup: BeautifulSoup) -> bool:
@@ -159,7 +160,8 @@ class CiseiRequestHandler:
         return "Successivi" in f"{matches}"
 
     def log_person_info(self, person_info: PersonalInfo) -> None:
-        """TODO: Implement logging strategy"""
+        print(person_info, "\n")
+        self.logger.add_person_info(person_info)
 
 
 def scrap_cisei():
