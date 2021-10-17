@@ -21,6 +21,7 @@ py_library(
         requirement("pydantic"),
         requirement("requests"),
         requirement("urllib3"),
+        "//logger:cisei_logger",
     ],
 )
 

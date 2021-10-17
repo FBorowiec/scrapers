@@ -7,6 +7,6 @@ py_library(
     name = "cisei_logger",
     srcs = glob(["*.py"]),
     deps = [
-        requirement("psycopg2"),
+        requirement("psycopg2-binary"),
     ],
 )

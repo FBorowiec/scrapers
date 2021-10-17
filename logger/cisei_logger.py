@@ -1,5 +1,4 @@
 import psycopg2
-from scrapers.cisei.cisei_scrapper import PersonalInfo
 
 
 class LoggerDB:
@@ -36,7 +35,7 @@ class LoggerDB:
         )
         self.conn.commit()
 
-    def add_person_info(self, person_info: PersonalInfo) -> None:
+    def add_person_info(self, person_info) -> None:
         with self.conn:
             self.c.execute(
                 """
