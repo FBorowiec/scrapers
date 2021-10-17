@@ -10,7 +10,7 @@ from bs4 import BeautifulSoup
 from tenacity import retry, wait_fixed
 from pydantic import BaseModel, HttpUrl
 from cisei.names import get_names_list
-from logger.cisei_logger import LoggerDB
+from cisei.cisei_logger import LoggerDB
 
 
 class PersonalInfo(BaseModel):

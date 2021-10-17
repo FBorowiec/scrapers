@@ -60,7 +60,7 @@ class LoggerDB:
                     person_info.trip_date,
                     person_info.registration_place,
                     person_info.url,
-                    person_info.person_details,
+                    person_info.details,
                 ),
             )
 
