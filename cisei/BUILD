@@ -16,6 +16,7 @@ py_library(
     ],
     deps = [
         requirement("tenacity"),
+        requirement("psycopg2-binary"),
         requirement("pydantic"),
     ],
 )
