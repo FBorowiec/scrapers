@@ -8,6 +8,7 @@ jobs:
   continuous_deployment:
     runs-on: ubuntu-latest
 
+    if: "startsWith(github.head_ref, 'deployment/')"
     steps:
       - name: Docker Login
         uses: docker/login-action@v1.8.0
