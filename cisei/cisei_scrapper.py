@@ -4,6 +4,7 @@ from urllib.parse import urljoin
 from urllib3.util import Retry
 from requests.adapters import HTTPAdapter
 from requests.sessions import Session
+from string import ascii_letters
 from typing import Optional, Dict
 from time import sleep
 from bs4 import BeautifulSoup
@@ -83,6 +84,10 @@ class CiseiRequestHandler:
         soup = BeautifulSoup(c, "html.parser")
         return soup
 
+    @staticmethod
+    def remove_alphanumeric(arg: str) -> str:
+        return ("".join([c for c in arg if c in (ascii_letters)]),)
+
     def get_person_info(self, td_list, name):
         idx = td_list[0].text
 
@@ -112,11 +117,11 @@ class CiseiRequestHandler:
 
         person_info = PersonalInfo(
             idx=idx,
-            surname=name,
-            full_name=full_name,
+            surname=self.remove_alphanumeric(name),
+            full_name=self.remove_alphanumeric(full_name),
             age=age,
             trip_date=trip_date,
-            registration_place=registration_place,
+            registration_place=self.remove_alphanumeric(registration_place),
             url=urljoin(self.BASE_PERSON_URL, details),
         )
 
