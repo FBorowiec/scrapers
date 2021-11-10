@@ -56,17 +56,18 @@ class LoggerDB:
                 url,
                 details
             )
-            VALUES (DEFAULT, {idx}, {surname}, {full_name}, {age}, {trip_date}, {registration_place}, {url}, {details});
-            """.format(
-                    idx=person_info.idx,
-                    surname=person_info.surname,
-                    full_name=person_info.full_name,
-                    age=person_info.age,
-                    trip_date=person_info.trip_date,
-                    registration_place=person_info.registration_place,
-                    url=str(person_info.url),
-                    details=person_info.details,
-                )
+            VALUES (DEFAULT, %s, %s, %s, %s, %s, %s, %s, %s);
+            """,
+                (
+                    person_info.idx,
+                    person_info.surname,
+                    person_info.full_name,
+                    person_info.age,
+                    person_info.trip_date,
+                    person_info.registration_place,
+                    person_info.url,
+                    person_info.details,
+                ),
             )
 
     def display_person_info(self, hours: int):
