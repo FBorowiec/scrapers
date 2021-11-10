@@ -9,7 +9,7 @@ from typing import Optional, Dict
 from time import sleep
 from bs4 import BeautifulSoup
 from tenacity import retry, wait_fixed
-from pydantic import BaseModel, HttpUrl
+from pydantic import BaseModel
 from cisei.names import get_names_list
 from cisei.cisei_logger import LoggerDB
 
@@ -21,7 +21,7 @@ class PersonalInfo(BaseModel):
     age: Optional[int] = None
     trip_date: Optional[date]
     registration_place: str
-    url: HttpUrl
+    url: str
     details: Optional[Dict]
 
 
@@ -115,15 +115,6 @@ class CiseiRequestHandler:
 
         details = str(td_list[5].contents[1]).split('"')[1]
 
-        # person_info = PersonalInfo(
-        #     idx=idx,
-        #     surname=self.remove_alphanumeric(name),
-        #     full_name=self.remove_alphanumeric(full_name),
-        #     age=age,
-        #     trip_date=trip_date,
-        #     registration_place=self.remove_alphanumeric(registration_place),
-        #     url=urljoin(self.BASE_PERSON_URL, details),
-        # )
         person_info = PersonalInfo(
             idx=idx,
             surname=name,

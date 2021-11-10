@@ -64,7 +64,7 @@ class LoggerDB:
                     age=person_info.age,
                     trip_date=person_info.trip_date,
                     registration_place=person_info.registration_place,
-                    url=person_info.url,
+                    url=str(person_info.url),
                     details=person_info.details,
                 )
             )
