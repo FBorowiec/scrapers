@@ -86,7 +86,7 @@ class CiseiRequestHandler:
 
     @staticmethod
     def remove_alphanumeric(arg: str) -> str:
-        return ("".join([c for c in arg if c in (ascii_letters)]),)
+        return "".join([c for c in arg if c in (ascii_letters)])
 
     def get_person_info(self, td_list, name):
         idx = td_list[0].text
@@ -115,13 +115,22 @@ class CiseiRequestHandler:
 
         details = str(td_list[5].contents[1]).split('"')[1]
 
+        # person_info = PersonalInfo(
+        #     idx=idx,
+        #     surname=self.remove_alphanumeric(name),
+        #     full_name=self.remove_alphanumeric(full_name),
+        #     age=age,
+        #     trip_date=trip_date,
+        #     registration_place=self.remove_alphanumeric(registration_place),
+        #     url=urljoin(self.BASE_PERSON_URL, details),
+        # )
         person_info = PersonalInfo(
             idx=idx,
-            surname=self.remove_alphanumeric(name),
-            full_name=self.remove_alphanumeric(full_name),
+            surname=name,
+            full_name=full_name,
             age=age,
             trip_date=trip_date,
-            registration_place=self.remove_alphanumeric(registration_place),
+            registration_place=registration_place,
             url=urljoin(self.BASE_PERSON_URL, details),
         )
 
