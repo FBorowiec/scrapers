@@ -21,9 +21,15 @@ class LoggerDB:
     def create_person_info_table(self):
         self.c.execute(
             """
-            CREATE TABLE IF NOT EXISTS person_info (
+            DROP TABLE person_info;
+            """
+        )
+
+        self.c.execute(
+            """
+            CREATE TABLE person_info (
             id SERIAL PRIMARY KEY,
-            idx TEXT NOT NULL,
+            idx INT,
             surname TEXT NOT NULL,
             full_name TEXT NOT NULL,
             age INT,
@@ -39,7 +45,7 @@ class LoggerDB:
         with self.conn:
             self.c.execute(
                 """
-            INSERT INTO person_info DATA(
+            INSERT INTO person_info (
                 id,
                 idx,
                 surname,
@@ -50,18 +56,17 @@ class LoggerDB:
                 url,
                 details
             )
-            VALUES (DEFAULT, %s, %s, %s, %s, %s, %s, %s);
-            """,
-                (
-                    person_info.idx,
-                    person_info.surname,
-                    person_info.full_name,
-                    person_info.age,
-                    person_info.trip_date,
-                    person_info.registration_place,
-                    person_info.url,
-                    person_info.details,
-                ),
+            VALUES (DEFAULT, {idx}, {surname}, {full_name}, {age}, {trip_date}, {registration_place}, {url}, {details});
+            """.format(
+                    idx=person_info.idx,
+                    surname=person_info.surname,
+                    full_name=person_info.full_name,
+                    age=person_info.age,
+                    trip_date=person_info.trip_date,
+                    registration_place=person_info.registration_place,
+                    url=person_info.url,
+                    details=person_info.details,
+                )
             )
 
     def display_person_info(self, hours: int):
