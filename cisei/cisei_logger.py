@@ -1,4 +1,5 @@
 import psycopg2
+from psycopg2.extras import Json, DictCursor
 
 
 class LoggerDB:
@@ -14,7 +15,7 @@ class LoggerDB:
         self.conn = psycopg2.connect(
             host=host, database=db_name, port=port, user=user, password=password
         )
-        self.c = self.conn.cursor()
+        self.c = self.conn.cursor(cursor_factory=DictCursor)
 
         self.create_person_info_table()
 
@@ -66,7 +67,7 @@ class LoggerDB:
                     person_info.trip_date,
                     person_info.registration_place,
                     person_info.url,
-                    person_info.details,
+                    Json(person_info.details),
                 ),
             )
 
