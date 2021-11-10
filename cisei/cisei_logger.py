@@ -9,8 +9,12 @@ class LoggerDB:
     USER = "postgres"
     PASSWORD = "postgres"
 
-    def __init__(self, host=HOST, db_name=DB_NAME, port=PORT, user=USER, password=PASSWORD) -> None:
-        self.conn = psycopg2.connect(host=host, database=db_name, port=port, user=user, password=password)
+    def __init__(
+        self, host=HOST, db_name=DB_NAME, port=PORT, user=USER, password=PASSWORD
+    ) -> None:
+        self.conn = psycopg2.connect(
+            host=host, database=db_name, port=port, user=user, password=password
+        )
         self.c = self.conn.cursor()
 
         self.create_person_info_table()
@@ -62,7 +66,7 @@ class LoggerDB:
                 ),
             )
 
-    def display_person_info(self, hours: int):
+    def display_person_info(self):
         with self.conn:
             self.c.execute(
                 """
@@ -82,3 +86,8 @@ class LoggerDB:
             )
 
             return self.c.fetchall()
+
+    def __del__(self) -> None:
+        self.conn.commit()
+        self.c.close()
+        self.conn.close()
