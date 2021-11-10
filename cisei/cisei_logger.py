@@ -22,13 +22,7 @@ class LoggerDB:
     def create_person_info_table(self):
         self.c.execute(
             """
-            DROP TABLE person_info;
-            """
-        )
-
-        self.c.execute(
-            """
-            CREATE TABLE person_info (
+            CREATE TABLE IF NOT EXISTS person_info (
             id SERIAL PRIMARY KEY,
             idx INT,
             surname TEXT NOT NULL,
